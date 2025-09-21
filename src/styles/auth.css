@@ -186,3 +186,20 @@
   background: #1e3a8a;
   color: white;
 }
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #1e3a8a;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+}
+
+.nav-links a:hover {
+  background: #e0f2fe;
+}

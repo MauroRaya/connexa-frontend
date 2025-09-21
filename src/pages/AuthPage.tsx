@@ -1,10 +1,10 @@
 import AuthForm from "../components/auth/AuthForm";
-import AuthHeader from "../components/auth/AuthHeader";
+import Header from "../components/Header";
 
 export default function AuthPage() {
   return (
     <div className="auth-page">
-      <AuthHeader />
+      <Header />
       <main className="auth-main">
         <AuthForm />
       </main>
