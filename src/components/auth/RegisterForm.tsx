@@ -25,6 +25,8 @@ export default function RegisterForm() {
     e.preventDefault();
     setLoading(true);
 
+    console.log("url: " + process.env.REACT_APP_API_URL);
+
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/register`, {
         method: "POST",
