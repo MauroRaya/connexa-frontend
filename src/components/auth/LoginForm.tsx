@@ -6,7 +6,19 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const [toasts, setToasts] = useState<
+    { id: number; message: string; type: "success" | "error" }[]
+  >([]);
+
+  const addToast = (message: string, type: "success" | "error") => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 10000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,15 +33,22 @@ export default function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Credenciais inválidas");
+        if (data.errors && Array.isArray(data.errors)) {
+          data.errors.forEach((msg: string) => addToast(msg, "error"));
+        } else {
+          addToast(data.error || "Erro ao fazer login", "error");
+        }
+        return;
       }
 
-      const data = await response.json();
-      console.log("✅ Login bem-sucedido:", data);
-      setToast({ message: "Login realizado com sucesso!", type: "success" });
+      localStorage.setItem("authToken", data.token);
+
+      addToast("Login realizado com sucesso!", "success");
     } catch (err: any) {
-      setToast({ message: err.message || "Erro desconhecido", type: "error" });
+      addToast(err.message || "Erro desconhecido", "error");
     } finally {
       setLoading(false);
     }
@@ -69,13 +88,18 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <Toast
+            key={t.id}
+            message={t.message}
+            type={t.type}
+            onClose={() =>
+              setToasts((prev) => prev.filter((toast) => toast.id !== t.id))
+            }
+          />
+        ))}
+      </div>
     </>
   );
 }

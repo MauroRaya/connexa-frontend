@@ -7,7 +7,19 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const [toasts, setToasts] = useState<
+    { id: number; message: string; type: "success" | "error" }[]
+  >([]);
+
+  const addToast = (message: string, type: "success" | "error") => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 10000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,8 +28,8 @@ export default function RegisterForm() {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        headers: { 
+          "Content-Type": "application/json" 
         },
         body: JSON.stringify({ 
           name, 
@@ -26,15 +38,20 @@ export default function RegisterForm() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Erro ao criar conta");
+        if (data.errors && Array.isArray(data.errors)) {
+          data.errors.forEach((msg: string) => addToast(msg, "error"));
+        } else {
+          addToast(data.error || "Erro ao criar conta", "error");
+        }
+        return;
       }
 
-      const data = await response.json();
-      console.log("✅ Cadastro bem-sucedido:", data);
-      setToast({ message: "Conta criada com sucesso!", type: "success" });
+      addToast("Conta criada com sucesso!", "success");
     } catch (err: any) {
-      setToast({ message: err.message || "Erro desconhecido", type: "error" });
+      addToast(err.message || "Erro desconhecido", "error");
     } finally {
       setLoading(false);
     }
@@ -74,14 +91,19 @@ export default function RegisterForm() {
           {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
       </form>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <Toast
+            key={t.id}
+            message={t.message}
+            type={t.type}
+            onClose={() =>
+              setToasts((prev) => prev.filter((toast) => toast.id !== t.id))
+            }
+          />
+        ))}
+      </div>
     </>
   );
 }
