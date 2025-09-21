@@ -32,7 +32,13 @@ export default function GroupsPage() {
           return;
         }
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/groups`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/groups`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const data = await response.json();
 
         if (!response.ok) {
