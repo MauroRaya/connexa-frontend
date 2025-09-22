@@ -3,6 +3,17 @@ import Header from "../components/Header";
 import GroupCard from "../components/GroupCard";
 import Toast from "../components/Toast";
 import type { Group } from "../types";
+import SkeletonCard from "../components/SkeletonCard";
+
+function decodeToken(token: string): { sub?: string } | null {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded;
+  } catch {
+    return null;
+  }
+}
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -10,6 +21,7 @@ export default function GroupsPage() {
   const [toasts, setToasts] = useState<
     { id: number; message: string; type: "success" | "error" }[]
   >([]);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const addToast = (message: string, type: "success" | "error") => {
     const id = Date.now() + Math.random();
@@ -21,6 +33,12 @@ export default function GroupsPage() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const decoded = decodeToken(token);
+      if (decoded?.sub) setUserEmail(decoded.sub);
+    }
+
     const fetchGroups = async () => {
       setLoading(true);
 
@@ -29,9 +47,10 @@ export default function GroupsPage() {
         if (!token) {
           addToast("Token de autenticação não encontrado", "error");
           setLoading(false);
+          window.location.href = "/";
           return;
         }
-        
+
         const response = await fetch(`${process.env.REACT_APP_API_URL}/groups`, {
           method: "GET",
           headers: {
@@ -39,6 +58,12 @@ export default function GroupsPage() {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        if (response.status === 403) {
+          localStorage.removeItem("authToken");
+          window.location.href = "/";
+          return;
+        }
 
         const data = await response.json();
 
@@ -58,8 +83,46 @@ export default function GroupsPage() {
     fetchGroups();
   }, []);
 
-  const handleJoin = (groupId: number) => {
-    console.log("Joining group:", groupId);
+
+  const handleJoin = async (groupId: number) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        addToast("Token de autenticação não encontrado", "error");
+        window.location.href = "/";
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/groups/${groupId}/join`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 403) {
+        localStorage.removeItem("authToken");
+        window.location.href = "/";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        addToast(data.error || "Erro ao entrar no grupo", "error");
+        return;
+      }
+
+      setGroups((prev) => prev.map((g) => (g.id === data.id ? data : g)));
+
+      addToast("Você entrou no grupo com sucesso!", "success");
+    } catch (err: any) {
+      addToast(err.message || "Erro de conexão", "error");
+    }
   };
 
   const handleDetails = (groupId: number) => {
@@ -77,10 +140,31 @@ export default function GroupsPage() {
             <p>Encontre grupos perfeitos para seus estudos</p>
           </div>
 
+          <div className="search-content">
+            <div className="search-row">
+              <div className="search-left">
+                <input
+                  type="text"
+                  placeholder="Buscar por matéria, assunto ou tags..."
+                  onChange={(e) => console.log("buscar:", e.target.value)}
+                />
+              </div>
+              <div className="search-right">
+                <button className="btn primary">Criar Grupo</button>
+              </div>
+            </div>
+          </div>
+
           {loading ? (
-            <p>Carregando grupos...</p>
+            <div className="grid">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           ) : groups.length === 0 ? (
-            <p>Nenhum grupo encontrado.</p>
+            <div className="empty-message">
+              <p>Nenhum grupo encontrado.</p>
+            </div>
           ) : (
             <>
               <h2>{groups.length} grupos encontrados</h2>
@@ -91,6 +175,7 @@ export default function GroupsPage() {
                     group={group}
                     onJoin={handleJoin}
                     onDetails={handleDetails}
+                    isJoined={userEmail ? group.students.some((s) => s.email === userEmail) : false}
                   />
                 ))}
               </div>

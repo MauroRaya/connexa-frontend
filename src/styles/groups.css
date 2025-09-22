@@ -33,6 +33,9 @@ body {
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
   border: 2px solid transparent;
+
+  max-width: 320px;
+  min-height: 260px;
 }
 
 .card:hover {
@@ -40,7 +43,6 @@ body {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid #3b82f6;
 }
-
 
 .card-header {
   display: flex;
@@ -103,6 +105,22 @@ button.secondary {
   color: #111827;
 }
 
+button.primary:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+button.secondary:hover {
+  background: #e5e7eb;
+}
+
+button.primary:disabled,
+button.primary.joined {
+  background: #4c3fda;
+  color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 .page-wrapper {
   display: flex;
   justify-content: center;
@@ -131,4 +149,57 @@ button.secondary {
   font-weight: 600;
   color: #374151;
   margin: 2rem 0 1rem;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 4rem 0;
+}
+
+.search-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-left {
+  flex: 3;
+}
+
+.search-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-left input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.btn.primary {
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn.primary:hover {
+  background: #172554;
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import InputField from "../InputField";
 import Toast from "../Toast";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,8 @@ export default function LoginForm() {
   const [toasts, setToasts] = useState<
     { id: number; message: string; type: "success" | "error" }[]
   >([]);
+
+  const navigate = useNavigate();
 
   const addToast = (message: string, type: "success" | "error") => {
     const id = Date.now() + Math.random();
@@ -47,6 +50,8 @@ export default function LoginForm() {
       localStorage.setItem("authToken", data.token);
 
       addToast("Login realizado com sucesso!", "success");
+
+      navigate("/groups");
     } catch (err: any) {
       addToast(err.message || "Erro desconhecido", "error");
     } finally {
