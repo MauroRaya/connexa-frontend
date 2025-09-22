@@ -5,6 +5,7 @@ import "./styles/auth.css";
 import "./styles/toast.css";
 import "./styles/groups.css";
 import "./styles/skeleton-card.css";
+import "./styles/modal.css";
 
 function App() {
   return (

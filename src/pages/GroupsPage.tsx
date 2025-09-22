@@ -4,6 +4,8 @@ import GroupCard from "../components/GroupCard";
 import Toast from "../components/Toast";
 import type { Group } from "../types";
 import SkeletonCard from "../components/SkeletonCard";
+import ModalCreateGroup from "../components/ModalCreateGroup";
+
 
 function decodeToken(token: string): { sub?: string } | null {
   try {
@@ -22,6 +24,7 @@ export default function GroupsPage() {
     { id: number; message: string; type: "success" | "error" }[]
   >([]);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const addToast = (message: string, type: "success" | "error") => {
     const id = Date.now() + Math.random();
@@ -150,7 +153,9 @@ export default function GroupsPage() {
                 />
               </div>
               <div className="search-right">
-                <button className="btn primary">Criar Grupo</button>
+                <button className="btn primary" onClick={() => setShowModal(true)}>
+                  Criar Grupo
+                </button>
               </div>
             </div>
           </div>
@@ -196,6 +201,15 @@ export default function GroupsPage() {
           />
         ))}
       </div>
+      {showModal && (
+        <ModalCreateGroup
+          onClose={() => setShowModal(false)}
+          onSuccess={() => window.location.reload()}
+          addToast={addToast}
+        />
+      )}
+
     </>
+
   );
 }
